@@ -1,5 +1,6 @@
 import re
 import os
+import sys
 import json
 import time
 import requests
@@ -143,7 +144,7 @@ def get_inputs():
 	INPUT: None
 	OUTPUT: Tuple/None
 	"""
-	city = input("Enter the city name: ")
+	city = user_input("Enter the city name: ")
 	state_id = verify_city(city.lower())
 
 	if state_id is None:
@@ -367,7 +368,7 @@ def prompt_for_more_options():
 	"""
 	heading("You can also try the below options")
 	print("1)Detailed description of today's weather\n2)Description of a day from next 9 days\n3)Weather for the next 9 days\nPress any other key to exit")
-	x = input("->")
+	x = user_input("->")
 	if x not in ['1','2','3']:
 		error("Invalid Input.")
 		x = None
@@ -391,7 +392,7 @@ def get_day_from_user():
 		if index == 0:
 			continue
 		print("%d) %s"%(index,days[index]))
-	x = input("Enter your option: ")
+	x = user_input("Enter your option: ")
 	if re.match("^\d+$",x):
 		if int(x) < len(days) and int(x) > 0:
 			return int(x)+1 #Present date is hidden in the list of days. Increasing the option by 1 balances that 
