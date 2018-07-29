@@ -38,6 +38,63 @@ def init():
 	COUNTRY = COUNTRY['countries']
 
 
+def user_input(message):
+	"""
+	Collect user input based on python version
+	
+	INPUT: String
+	OUTPUT: String
+	"""
+	if int(sys.version[0]) < 3:
+		return raw_input(message)
+	return input(message)
+
+
+def heading(msg):
+	"""
+	Highlight Heading
+	
+	INPUT: msg
+	OUTPUT: None
+	"""
+	print("\n"+"*"*(len(msg)+4))
+	print("* %s *"%msg)
+	print("*"*(len(msg)+4))
+
+
+def error(msg):
+	"""
+	Print Error Msg
+	
+	INPUT: String
+	OUTPUT: None
+	"""
+	msg = "ERROR:'%s'"%msg
+	print("\n"+"-"*(len(msg)+4))
+	print("! %s !"%msg)
+	print("-"*(len(msg)+4))
+
+
+def format_description(message):
+	"""
+	Formats lenghty one-liners to multiple lines
+	
+	INPUT: string
+	OUTPUT: string
+	"""
+	x = message.split(" ")
+	if len(x) <= 5:
+		return message
+	else:
+		message = ""
+		for i in range(len(x)):
+			if i%6 == 0 and i>0:
+				message += "\n%s "%x[i]
+			else:
+				message += "%s "%x[i]
+		return message[:-1]
+
+
 def verify_city(name):
 	"""
 	API to verify if the city entered by user 
@@ -176,7 +233,8 @@ def collect_dates(et):
 		day = entries.findall("./*[@class='dt']/span")[0].text.strip()
 		date = entries.findall("./*[@class='dt']/span")[1].text.strip()
 		DATA['day%d'%count]['day'] = "%s %s"%(day,date)
-		
+		count += 1
+
 
 
 def collect_all_data(et):
@@ -211,9 +269,38 @@ def collect_all_data(et):
 def print_data_on_console(day,detail=False):
 	pass
 
+
+def description_of_all_days():
+	"""
+	Print weather condition of the remaining 9 days
+
+	INPUT: None
+	OUTPUT: None
+	"""
+	data = []
+	for key,val in DATA.items():
+		entry = []
+		day = val['day']
+		t_high = val['high']
+		t_low = val['low']
+		sky_txt = val['skytext']
+		sunrise = val['sunrise']
+		sunset = val['sunset']
+		moonrise = val['moonrise']
+		moonset = val['moonset']
+		mornNat = format_description(val['mornNat'])
+		evenNat = format_description(val['evenNat'])
+		precip = "%.2f"%(sum([int(x) for x in val['precipitations']])/len(val['precipitations']))
+		entry = [day,t_high,t_low,precip,sky_txt,sunrise,sunset,moonrise,moonset,mornNat,evenNat]
+		data.append(entry)
+	headers = ["Day","THigh(F)","TLow(F)","Rainfall","Sky","Sunrise","Sunset","Moonrise","Moonset","Day","Night"]
+	print(tabulate(data,headers,tablefmt='grid'))
+		
+		
+
 def print_on_console(day=None, detailed=False):
 	"""
-	Prints the today's weather condition on console
+	Print today's weather condition on console
 
 	INPUT: None
 	OUTPUT: None
@@ -228,8 +315,9 @@ def print_on_console(day=None, detailed=False):
 		evenNat = data['evenNat']
 		sunrise = data['sunrise']
 		sunset = data['sunset']
-		precip = sum([int(x) for x in data['precipitations']])/len(data['precipitations'])
-		print("\nToday's Weather Forecast:\nMax Temp: %d(F)\nMin Temp: %d(F)\nChances of Rain: %.1f\nSky: %s\nSunrise: %s\nSunset: %s\nDaytime: %s\nNighttime: %s\n"%(t_high,t_low,precip,sky_txt,sunrise,sunset,mornNat,evenNat))
+		precip = "%.1f"%(sum([int(x) for x in data['precipitations']])/len(data['precipitations']))
+		heading("Today's Weather Forecast")
+		print("Max Temp: %d(F)\nMin Temp: %d(F)\nChances of Rain: %s\nSky: %s\nSunrise: %s\nSunset: %s\nDaytime: %s\nNighttime: %s\n"%(t_high,t_low,precip,sky_txt,sunrise,sunset,mornNat,evenNat))
 	else:
 		day = 'day%d'%day
 		data = DATA[day]
@@ -241,15 +329,16 @@ def print_on_console(day=None, detailed=False):
 		evenNat = data['evenNat']
 		sunrise = data['sunrise']
 		sunset = data['sunset']
-		precip = sum([int(x) for x in data['precipitations']])/len(data['precipitations'])
+		precip = "%.1f"%(sum([int(x) for x in data['precipitations']])/len(data['precipitations']))
 		if detailed == False:
-			print("\nWeather Forecast of %s:\nMax Temp: %d(F)\nMin Temp: %d(F)\nChances of Rain: %.1f\nSky: %s\nSunrise: %s\nSunset: %s\nDaytime: %s\nNighttime: %s\n"%(day,t_high,t_low,precip,sky_txt,sunrise,sunset,mornNat,evenNat))
+			heading("Weather Forecast of %s"%(day))
+			print("Max Temp: %d(F)\nMin Temp: %d(F)\nChances of Rain: %s\nSky: %s\nSunrise: %s\nSunset: %s\nDaytime: %s\nNighttime: %s\n"%(t_high,t_low,precip,sky_txt,sunrise,sunset,mornNat,evenNat))
 		else:
 			moonrise = data['moonrise']
 			moonset = data['moonset']
-			table_1_heading = ["Temp High(F)","Temp Low(F)","Rainfall Probability","Sky","Sunrise","Sunset","Moonrise","Moonset"] 
-			table_2_heading = ["Time","Temperature","Precipitation","Sky","Wind Direction","Wind Speed"]
-			table_1 = [[t_high,t_low,precip,sky_txt,sunrise,sunset,moonrise,moonset]]
+			table_1_heading = ["Day","Temp High(F)","Temp Low(F)","Rain(probability)","Sky","Sunrise","Sunset","Moonrise","Moonset"] 
+			table_2_heading = ["Time","Temperature(F)","Precipitation(P)","Sky","Wind Direction","Wind Speed"]
+			table_1 = [[day,t_high,t_low,precip,sky_txt,sunrise,sunset,moonrise,moonset]]
 			table_2 = []
 			for i in range(len(data['times'])):
 				temp = []
@@ -260,12 +349,11 @@ def print_on_console(day=None, detailed=False):
 				temp.append(data['windDir'][i])
 				temp.append(data['wind'][i])
 				table_2.append(temp)
-			print("\n\n")
-			print("===Throughout the day===")
-			print(tabulate(table_1,table_1_heading,tablefmt='grid'))
 			print("\n")
+			heading("Overall Condition")
+			print(tabulate(table_1,table_1_heading,tablefmt='grid'))
 			time.sleep(.5)
-			print("===Hourly details===")
+			heading("Hourly Details")
 			print(tabulate(table_2,table_2_heading,tablefmt='grid'))
 			print("\n")
 			
@@ -277,12 +365,46 @@ def prompt_for_more_options():
 	INPUT: None
 	OUTPUT: String
 	"""
-	print("\nYou can even try the below options:\n1)Detailed description of today's weather\n2)Description from the next 7 days\n3)Detailed description of the next 7 days\nPress any other key to exit")
-	x = input("::")
+	heading("You can also try the below options")
+	print("1)Detailed description of today's weather\n2)Description of a day from next 9 days\n3)Weather for the next 9 days\nPress any other key to exit")
+	x = input("->")
 	if x not in ['1','2','3']:
-		print("Thankyou for using this tool!!")
+		error("Invalid Input.")
 		x = None
 	return x
+
+
+def get_day_from_user():
+	"""
+	collect the day whose data should be
+	displayed on the console.
+	
+	INPUT: None
+	OUTPUT: int/None
+	"""
+	days = []
+	for entry in DATA:
+		days.append(DATA[entry]['day'])
+	heading("Select from the following days")
+	print("'Note: Mention either index or the day'")
+	for index in range(len(days)):
+		if index == 0:
+			continue
+		print("%d) %s"%(index,days[index]))
+	x = input("Enter your option: ")
+	if re.match("^\d+$",x):
+		if int(x) < len(days) and int(x) > 0:
+			return int(x)+1 #Present date is hidden in the list of days. Increasing the option by 1 balances that 
+		else:
+			error("'%s' is not in the avilable options"%(x))
+			return None
+	else:
+		if x in days:
+			return days.index(x)+1
+		else:
+			error("'%s' is not in the list of days."%x)
+			return None
+
 
 def main():
 	"""
@@ -308,21 +430,24 @@ def main():
 	if x is None:
 		return
 	else:
+		time.sleep(1)
 		if x == '1':
 			print_on_console(day=1,detailed=1)
+		if x == '2':
+			day = get_day_from_user()
+			if day is None:
+				return
+			else:
+				print_on_console(day=day,detailed=1)
+		if x == '3':
+			description_of_all_days()
 	
 
 
 if __name__ == "__main__":
-	#try:
 	init()
 	main()
-	#except Exception as e:
-	#	print(e)
-	#finally:
-	#	try:
-	#		#pass
-	#		os.remove("%s/dummy.html"%WORK_DIR)
-	#	except:
-	#		pass
-
+	os.remove("dummy.html")
+	#print("############################")
+	#print("Thanks for using this tool!!")
+	#print("############################")
